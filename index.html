@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+</head>
+<body>
+   <header> <nav>
+        <a href="#">Home</a>
+        <a href="#">Serviços</a>
+        <a href="#">Sobre</a>
+        <a href="#">Contato</a>
+        <a href="#">FAQ</a>
+     </nav>
+        <h1>Classificador de Dados</h1>
+        <p>Visualize o processo de ordenação de um vetor usando o algoritmo Bubble Sort. Gere vetores aleatórios, controle a velocidade da ordenação e veja cada passo do processo em tempo real.</p>
+        <style>
+            header {
+                background-color: #f0f0f0;
+                padding: 20px;
+                text-align: center;
+            }
+        </style>
+        <style>
+            nav {
+                margin-bottom: 20px;
+            }
+            nav a {
+                margin: 0 10px;
+                text-decoration: none;
+                color: #333;
+            }
+            nav a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </header>
+   <script>
+        const LARGURA = 1400;
+const ALTURA = 600;
+
+let dados = [];
+let ordenando = false;
+let pausado = false;
+let i = 0;
+let j = 0;
+
+function gerarDados() {
+    const qtd = parseInt(entryQtd.value);
+    if (isNaN(qtd) || qtd < 10 || qtd > 10000) {
+        status.textContent = "Digite um valor entre 10 e 10000";
+        status.style.color = "red";
+        return;
+    }
+
+    dados = Array.from({ length: qtd }, () => Math.floor(Math.random() * (300 - 10 + 1)) + 10);
+    desenhar(dados, Array(dados.length).fill("blue"));
+    status.textContent = `Vetor gerado (${qtd})`;
+    status.style.color = "black";
+}
+
+function desenhar(vetor, cores) {
+    canvas.innerHTML = "";
+    const larguraBarra = LARGURA / vetor.length;
+
+    vetor.forEach((valor, k) => {
+        const barra = document.createElement("div");
+        barra.style.width = `${larguraBarra}px`;
+        barra.style.height = `${valor}px`;
+        barra.style.backgroundColor = cores[k];
+        barra.style.position = "absolute";
+        barra.style.left = `${k * larguraBarra}px`;
+        barra.style.bottom = "0";
+        canvas.appendChild(barra);
+    });
+}
+
+function iniciar() {
+    if (dados.length === 0) return;
+
+    ordenando = true;
+    pausado = false;
+    i = 0;
+    j = 0;
+
+    status.textContent = "Ordenando...";
+    status.style.color = "blue";
+    passo();
+}
+
+function pausar() {
+    pausado = !pausado;
+    status.textContent = pausado ? "Pausado" : "Continuando...";
+    status.style.color = pausado ? "orange" : "blue";
+    if (!pausado) passo();
+}
+
+function passo() {
+    if (!ordenando || pausado) return;
+
+    const n = dados.length;
+
+    if (i < n) {
+        if (j < n - i - 1) {
+            if (dados[j] > dados[j + 1]) {
+                [dados[j], dados[j + 1]] = [dados[j + 1], dados[j]];
+            }
+
+            if (j % Math.max(1, n / 200) === 0) {
+                const cores = Array(n).fill("blue");
+                cores[j] = "red";
+                cores[j + 1] = "red";
+                desenhar(dados, cores);
+            }
+
+            j++;
+            const delay = velocidade.value * 1000;
+            setTimeout(passo, delay);
+        } else {
+            j = 0;
+            i++;
+            setTimeout(passo, 0);
+        }
+    } else {
+        desenhar(dados, Array(n).fill("green"));
+        status.textContent = "Finalizado ✔";
+        status.style.color = "green";
+        ordenando = false;
+    }
+}
+
+function modoTurbo() {
+    if (dados.length === 0) return;
+
+    ordenando = false;
+    pausado = false;
+
+    status.textContent = "Modo Turbo...";
+    status.style.color = "purple";
+
+    const n = dados.length;
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+            if (dados[j] > dados[j + 1]) {
+                [dados[j], dados[j + 1]] = [dados[j + 1], dados[j]];
+            }
+        }
+    }
+
+    desenhar(dados, Array(dados.length).fill("green"));
+    status.textContent = "Finalizado (Turbo) ⚡";
+    status.style.color = "green";
+}
+
+const root = document.createElement("div");
+document.body.appendChild(root);
+root.style.width = "950px";
+root.style.height = "580px";
+
+const canvas = document.createElement("div");
+canvas.style.width = `${LARGURA}px`;
+canvas.style.height = `${ALTURA}px`;
+canvas.style.position = "relative";
+canvas.style.backgroundColor = "white";
+root.appendChild(canvas);
+
+const frame = document.createElement("div");
+root.appendChild(frame);
+
+const labelQtd = document.createElement("label");
+labelQtd.textContent = "Quantidade (10 a 10000):";
+frame.appendChild(labelQtd);
+
+const entryQtd = document.createElement("input");
+entryQtd.type = "number";
+entryQtd.value = "100";
+frame.appendChild(entryQtd);
+
+const velocidade = document.createElement("input");
+velocidade.type = "range";
+velocidade.min = 0.001;
+velocidade.max = 1.0;
+velocidade.step = 0.001;
+velocidade.value = "0.01";
+frame.appendChild(velocidade);
+
+const labelVel = document.createElement("label");
+labelVel.textContent = "0.010 s";
+frame.appendChild(labelVel);
+
+velocidade.addEventListener("input", (event) => {
+    labelVel.textContent = `${parseFloat(event.target.value).toFixed(3)} s`;
+});
+
+const buttonGerar = document.createElement("button");
+buttonGerar.textContent = "Gerar";
+buttonGerar.onclick = gerarDados;
+frame.appendChild(buttonGerar);
+
+const buttonOrdenar = document.createElement("button");
+buttonOrdenar.textContent = "Ordenar";
+buttonOrdenar.onclick = iniciar;
+frame.appendChild(buttonOrdenar);
+
+const buttonPausar = document.createElement("button");
+buttonPausar.textContent = "Pausar";
+buttonPausar.onclick = pausar;
+frame.appendChild(buttonPausar);
+
+const buttonTurbo = document.createElement("button");
+buttonTurbo.textContent = "🚀 Turbo";
+buttonTurbo.onclick = modoTurbo;
+frame.appendChild(buttonTurbo);
+
+const status = document.createElement("label");
+status.textContent = "Pronto";
+status.style.color = "black";
+root.appendChild(status);
+
+const rodape = document.createElement("label");
+rodape.textContent = "Desenvolvido por Anthony";
+rodape.style.color = "black";
+root.appendChild(rodape);
+
+gerarDados();
+    </script>
+</body>
+</html>
